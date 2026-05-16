@@ -424,7 +424,7 @@ pub fn elfsym(s &Sym) &Elf64_Sym {
 	if s == unsafe { nil } || !s.c {
 		return unsafe { nil }
 	}
-	return &(&Elf64_Sym(tcc_state.symtab_section.data))[s.c]
+	return unsafe { &(&Elf64_Sym(tcc_state.symtab_section.data))[s.c] }
 }
 
 fn update_storage(sym &Sym) {
@@ -7069,7 +7069,7 @@ fn decl_design_delrels(sec &Section, c int, size int) {
 	if !sec || !sec.reloc {
 		return
 	}
-	rel = &Elf64_Rela(sec.reloc.data)
+	rel = unsafe { &Elf64_Rela(sec.reloc.data) }
 	rel2 = rel
 	rel_end = unsafe { &Elf64_Rela((sec.reloc.data + sec.reloc.data_offset)) }
 	for voidptr(rel) < voidptr(rel_end) {

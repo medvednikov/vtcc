@@ -200,13 +200,13 @@ pub fn tcc_run(s1 &TCCState, argc int, argv &&char) int {
 				rc.u.dwarf.dwarf_line_str = s1.dwarf_line_str_section.data
 			}
 		} else {
-			rc.u.stab.stab_sym = &Stab_Sym(s1.stab_section.data)
-			rc.u.stab.stab_sym_end = &Stab_Sym((s1.stab_section.data + s1.stab_section.data_offset))
-			rc.u.stab.stab_str = &char(s1.stab_section.link.data)
+			rc.u.stab.stab_sym = unsafe { &Stab_Sym(s1.stab_section.data) }
+			rc.u.stab.stab_sym_end = unsafe { &Stab_Sym((s1.stab_section.data + s1.stab_section.data_offset)) }
+			rc.u.stab.stab_str = unsafe { &char(s1.stab_section.link.data) }
 		}
 		rc.dwarf = s1.dwarf
-		rc.esym_start = &Elf64_Sym((s1.symtab_section.data))
-		rc.esym_end = &Elf64_Sym((s1.symtab_section.data + s1.symtab_section.data_offset))
+		rc.esym_start = unsafe { &Elf64_Sym((s1.symtab_section.data)) }
+		rc.esym_end = unsafe { &Elf64_Sym((s1.symtab_section.data + s1.symtab_section.data_offset)) }
 		rc.elf_str = &char(s1.symtab_section.link.data)
 		rc.prog_base = s1.text_section.sh_addr & u64(0xffffffff00000000)
 		rc.top_func = tcc_get_symbol(s1, c'main')

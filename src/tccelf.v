@@ -829,7 +829,7 @@ fn sort_syms(s1 &TCCState, s &Section) {
 	nb_syms = s.data_offset / sizeof(Elf64_Sym)
 	new_syms = &Elf64_Sym(tcc_malloc(nb_syms * sizeof(Elf64_Sym)))
 	old_to_new_syms = &int(tcc_malloc(nb_syms * sizeof(int)))
-	p = &Elf64_Sym(s.data)
+	p = unsafe { &Elf64_Sym(s.data) }
 	q = &Elf64_Sym(new_syms)
 	for i = 0; i < nb_syms; i++ {
 		if ((u8((p.st_info))) >> 4) == 0 {
@@ -845,7 +845,7 @@ fn sort_syms(s1 &TCCState, s &Section) {
 	if s.sh_size {
 		s.sh_info = unsafe { (&char(q) - &char(new_syms)) / sizeof(Elf64_Sym) }
 	}
-	p = &Elf64_Sym(s.data)
+	p = unsafe { &Elf64_Sym(s.data) }
 	for i = 0; i < nb_syms; i++ {
 		if ((u8((p.st_info))) >> 4) != 0 {
 			old_to_new_syms[i] = unsafe { (&char(q) - &char(new_syms)) / sizeof(Elf64_Sym) }
@@ -878,7 +878,7 @@ fn create_gnu_hash(s1 &TCCState) &Section {
 	gnu_hash.link = dynsym.hash.link
 	nb_syms = dynsym.data_offset / sizeof(Elf64_Sym)
 	ndef = 0
-	p = &Elf64_Sym(dynsym.data)
+	p = unsafe { &Elf64_Sym(dynsym.data) }
 	for i = 0; i < nb_syms; i++, unsafe { p++ } {
 		ndef += p.st_shndx != 0
 	}
@@ -946,7 +946,7 @@ fn update_gnu_hash(s1 &TCCState, gnu_hash &Section) {
 	old_to_new_syms = tcc_malloc(nb_syms * sizeof(int))
 	hash = &Elf32_Word(tcc_malloc(nb_syms * sizeof(Elf32_Word)))
 	nextbuck = &int(tcc_malloc(nb_syms * sizeof(int)))
-	p = &Elf64_Sym(dynsym.data)
+	p = unsafe { &Elf64_Sym(dynsym.data) }
 	q = new_syms
 	for i = 0; i < nb_syms; i++, unsafe { p++ } {
 		if p.st_shndx == 0 {
@@ -979,7 +979,7 @@ fn update_gnu_hash(s1 &TCCState, gnu_hash &Section) {
 	for i = 0; i < nbuckets; i++ {
 		buck[i].first = -1
 	}
-	p = &Elf64_Sym(dynsym.data)
+	p = unsafe { &Elf64_Sym(dynsym.data) }
 	for i = 0; i < nb_syms; i++, unsafe { p++ } {
 		if p.st_shndx != 0 {
 			bucket := hash[i] % nbuckets
@@ -992,7 +992,7 @@ fn update_gnu_hash(s1 &TCCState, gnu_hash &Section) {
 			}
 		}
 	}
-	p = &Elf64_Sym(dynsym.data)
+	p = unsafe { &Elf64_Sym(dynsym.data) }
 	for i = 0; i < nbuckets; i++ {
 		cur := buck[i].first
 		if cur != -1 {
@@ -1099,7 +1099,7 @@ fn relocate_section(s1 &TCCState, s &Section, sr &Section) {
 	addr := Elf64_Addr(0)
 
 	is_dwarf := s.sh_num >= s1.dwlo && s.sh_num < s1.dwhi
-	s1.qrel = &Elf64_Rel(sr.data)
+	s1.qrel = unsafe { &Elf64_Rel(sr.data) }
 	unsafe {
 		for rel = &Elf64_Rela(sr.data); voidptr(rel) < voidptr(&Elf64_Rela((sr.data + sr.data_offset))); rel++ {
 			ptr = s.data + rel.r_offset
@@ -1367,7 +1367,7 @@ fn build_got_entries(s1 &TCCState, got_sym int) {
 		s1.plt.reloc.sh_info = s1.got.sh_num
 	}
 	if got_sym {
-		(&Elf64_Sym(s1.symtab_section.data))[got_sym].st_size = s1.got.data_offset
+		unsafe { (&Elf64_Sym(s1.symtab_section.data))[got_sym].st_size = s1.got.data_offset }
 	}
 }
 

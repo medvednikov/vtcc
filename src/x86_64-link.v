@@ -221,9 +221,9 @@ fn relocate(s1 &TCCState, rel &Elf64_Rela, type_ int, ptr &u8, addr Elf64_Addr, 
 				x := 0
 				C.memcpy(ptr - 4, replace, sizeof(replace))
 				rel[1].r_info = (((Elf64_Xword((0))) << 32) + (0))
-				sym = &(&Elf64_Sym(s1.symtab_section.data))[sym_index]
+				sym = unsafe { &(&Elf64_Sym(s1.symtab_section.data))[sym_index] }
 				sec = s1.sections[sym.st_shndx]
-				x = sym.st_value - sec.sh_addr - sec.data_offset
+				x = int(i64(sym.st_value) - i64(sec.sh_addr) - i64(sec.data_offset))
 				add32le(ptr + 8, x)
 			} else { // 3
 				_tcc_error_noabort(s1, 'unexpected R_X86_64_TLSGD pattern')
@@ -246,18 +246,18 @@ fn relocate(s1 &TCCState, rel &Elf64_Rela, type_ int, ptr &u8, addr Elf64_Addr, 
 			sym := &Elf64_Sym(0)
 			sec := &Section(0)
 			x := 0
-			sym = &(&Elf64_Sym(s1.symtab_section.data))[sym_index]
+			sym = unsafe { &(&Elf64_Sym(s1.symtab_section.data))[sym_index] }
 			sec = s1.sections[sym.st_shndx]
-			x = val - sec.sh_addr - sec.data_offset
+			x = int(i64(val) - i64(sec.sh_addr) - i64(sec.data_offset))
 			add32le(ptr, x)
 		}
 		17, 18 {
 			sym := &Elf64_Sym(0)
 			sec := &Section(0)
 			x := 0
-			sym = &(&Elf64_Sym(s1.symtab_section.data))[sym_index]
+			sym = unsafe { &(&Elf64_Sym(s1.symtab_section.data))[sym_index] }
 			sec = s1.sections[sym.st_shndx]
-			x = val - sec.sh_addr - sec.data_offset
+			x = int(i64(val) - i64(sec.sh_addr) - i64(sec.data_offset))
 			add64le(ptr, x)
 		}
 		0 { // case comp body kind=BreakStmt is_enum=false

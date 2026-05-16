@@ -278,7 +278,7 @@ fn tal_realloc_impl(pal &&TinyAlloc, p voidptr, size u32) voidptr {
 		// vcc_trace('${@LOCATION}')
 		if unsafe { al.p - al.buffer + adj_size + sizeof(Tal_header_t) < al.size } {
 			// vcc_trace('${@LOCATION}')
-			header = &Tal_header_t(al.p)
+			header = unsafe { &Tal_header_t(al.p) }
 			header.size = adj_size
 			unsafe {
 				ret = al.p + sizeof(Tal_header_t)

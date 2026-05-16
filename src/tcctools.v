@@ -240,7 +240,7 @@ fn tcc_tool_ar(s1 &TCCState, argc int, argv &&u8) int {
 		if symtab && symtabsize {
 			nsym := symtabsize / sizeof(Elf64_Sym)
 			for i = 1; i < nsym; i++ {
-				sym = &Elf64_Sym((symtab + i * sizeof(Elf64_Sym)))
+				sym = unsafe { &Elf64_Sym((symtab + i * sizeof(Elf64_Sym))) }
 				if sym.st_shndx && (sym.st_info == 16 || sym.st_info == 17
 					|| sym.st_info == 18 || sym.st_info == 32 || sym.st_info == 33
 					|| sym.st_info == 34) {
