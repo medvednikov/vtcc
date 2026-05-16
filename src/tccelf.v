@@ -1009,7 +1009,10 @@ fn update_gnu_hash(s1 &TCCState, gnu_hash &Section) {
 				unsafe {
 					*chain++ = hash[cur] & ~1
 				}
-				bloom[(hash[cur] / (8 * 8)) % bloom_size] |= Elf64_Addr(1) << (hash[cur] % (8 * 8)) | Elf64_Addr(1) << ((hash[cur] >> bloom_shift) % (8 * 8))
+				unsafe {
+						bp := &bloom[(hash[cur] / 64) % u32(bloom_size)]
+						*bp = *bp | (Elf64_Addr(1) << (hash[cur] % 64)) | (Elf64_Addr(1) << ((hash[cur] >> u32(bloom_shift)) % 64))
+					}
 				if cur == buck[i].last {
 					break
 				}
