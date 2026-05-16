@@ -1107,9 +1107,9 @@ fn relocate_section(s1 &TCCState, s &Section, sr &Section) {
 			sym = &(&Elf64_Sym(s1.symtab_section.data))[sym_index]
 			type_ = ((rel.r_info) & 4294967295)
 			tgt = sym.st_value
-			tgt += rel.r_addend
+			tgt += u64(rel.r_addend)
 			if is_dwarf && type_ == 10 && sym.st_shndx >= s1.dwlo && sym.st_shndx < s1.dwhi {
-				add32le(ptr, tgt - s1.sections[sym.st_shndx].sh_addr)
+				add32le(ptr, int(i64(tgt) - i64(s1.sections[sym.st_shndx].sh_addr)))
 				continue
 			}
 			addr = s.sh_addr + rel.r_offset

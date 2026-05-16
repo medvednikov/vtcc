@@ -76,13 +76,13 @@ fn relocate_plt(s1 &TCCState) {
 	p = s1.plt.data
 	p_end = p + s1.plt.data_offset
 	if p < p_end {
-		x := s1.got.sh_addr - s1.plt.sh_addr - 6
+		x := int(i64(s1.got.sh_addr) - i64(s1.plt.sh_addr) - 6)
 		add32le(p + 2, x)
 		add32le(p + 8, x - 6)
 		p += 16
 		for p < p_end {
 			t := x
-			t += (s1.plt.data - p)
+			t += int(s1.plt.data - p)
 			add32le(p + 2, t)
 			p += 16
 		}
@@ -120,23 +120,23 @@ fn relocate(s1 &TCCState, rel &Elf64_Rela, type_ int, ptr &u8, addr Elf64_Addr, 
 				} else {
 					s1.qrel.r_info = (((Elf64_Xword((0))) << 32) + (8))
 					$if i386 {
-						s1.qrel.r_addend = read64le(ptr) + val
+						s1.qrel.r_addend = i64(read64le(ptr) + val)
 					}
 					unsafe { s1.qrel++ }
 				}
 			}
-			add64le(ptr, val)
+			add64le(ptr, i64(val))
 		}
 		10, 11 {
 			if s1.output_type & 4 {
 				s1.qrel.r_offset = rel.r_offset
 				s1.qrel.r_info = (((Elf64_Xword((0))) << 32) + (8))
 				$if i386 {
-					s1.qrel.r_addend = int(read32le(ptr)) + val
+					s1.qrel.r_addend = i64(int(read32le(ptr))) + i64(val)
 				}
 				unsafe { s1.qrel++ }
 			}
-			add32le(ptr, val)
+			add32le(ptr, int(val))
 		}
 		2 { // case comp body kind=IfStmt is_enum=false
 			if s1.output_type == 4 {
@@ -157,17 +157,17 @@ fn relocate(s1 &TCCState, rel &Elf64_Rela, type_ int, ptr &u8, addr Elf64_Addr, 
 			plt32pc32:
 			{
 				diff := i64(0)
-				diff = i64(val) - addr
+				diff = i64(val) - i64(addr)
 				if diff < -2147483648 || diff > 2147483647 {
 					_tcc_error_noabort(s1, 'internal error: relocation failed')
 				}
-				add32le(ptr, diff)
+				add32le(ptr, int(diff))
 			}
 		}
 		5 { // case comp body kind=BreakStmt is_enum=false
 		}
 		31 { // case comp body kind=CallExpr is_enum=false
-			add64le(ptr, val - s1.got.sh_addr + rel.r_addend)
+			add64le(ptr, i64(val) - i64(s1.got.sh_addr) + i64(rel.r_addend))
 		}
 		24 { // case comp body kind=IfStmt is_enum=false
 			if s1.output_type == 4 {
@@ -181,31 +181,31 @@ fn relocate(s1 &TCCState, rel &Elf64_Rela, type_ int, ptr &u8, addr Elf64_Addr, 
 					unsafe { s1.qrel++ }
 				}
 			}
-			add64le(ptr, val - addr)
+			add64le(ptr, i64(val) - i64(addr))
 		}
 		6, 7 {
-			write64le(ptr, val - rel.r_addend)
+			write64le(ptr, u64(i64(val) - i64(rel.r_addend)))
 		}
 		9, 41, 42 {
-			add32le(ptr, s1.got.sh_addr - addr + get_sym_attr(s1, sym_index, 0).got_offset - 4)
+			add32le(ptr, int(i64(s1.got.sh_addr) - i64(addr) + i64(get_sym_attr(s1, sym_index, 0).got_offset) - 4))
 		}
 		26 { // case comp body kind=CallExpr is_enum=false
-			add32le(ptr, s1.got.sh_addr - addr + rel.r_addend)
+			add32le(ptr, int(i64(s1.got.sh_addr) - i64(addr) + i64(rel.r_addend)))
 		}
 		29 { // case comp body kind=CallExpr is_enum=false
-			add64le(ptr, s1.got.sh_addr - addr + rel.r_addend)
+			add64le(ptr, i64(s1.got.sh_addr) - i64(addr) + i64(rel.r_addend))
 		}
 		22 { // case comp body kind=CallExpr is_enum=false
-			add32le(ptr, val - s1.got.sh_addr)
+			add32le(ptr, int(i64(val) - i64(s1.got.sh_addr)))
 		}
 		3 { // case comp body kind=CallExpr is_enum=false
-			add32le(ptr, get_sym_attr(s1, sym_index, 0).got_offset)
+			add32le(ptr, int(get_sym_attr(s1, sym_index, 0).got_offset))
 		}
 		27 { // case comp body kind=CallExpr is_enum=false
-			add64le(ptr, get_sym_attr(s1, sym_index, 0).got_offset)
+			add64le(ptr, i64(get_sym_attr(s1, sym_index, 0).got_offset))
 		}
 		25 { // case comp body kind=CallExpr is_enum=false
-			add64le(ptr, val - s1.got.sh_addr)
+			add64le(ptr, i64(val) - i64(s1.got.sh_addr))
 		}
 		19 {
 			// case comp stmt
