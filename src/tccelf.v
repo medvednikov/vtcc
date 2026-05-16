@@ -12,7 +12,7 @@ fn C.fwrite(voidptr, usize, usize, &C.FILE) usize
 fn C.strcmp(&char, &char) int
 
 const shf_relro = (1 << 1) | (1 << 0)
-const shf_private = int(0x8000_0000)
+const shf_private = -2147483648
 // section is dynsymtab_section
 const shf_dynsym = int(0x4000_0000)
 const shf_alloc = (1 << 1)
@@ -491,7 +491,7 @@ fn get_sym_addr(s1 &TCCState, name &char, err int, forc int) Elf64_Addr {
 		name = buf
 	}
 	sym_index = find_elf_sym(s1.symtab, name)
-	sym = &(&Elf64_Sym(s1.symtab.data))[sym_index]
+	sym = unsafe { &(&Elf64_Sym(s1.symtab.data))[sym_index] }
 	if !sym_index || sym.st_shndx == 0 {
 		if err {
 			unsafe {
@@ -524,7 +524,7 @@ fn list_elf_symbols(s &TCCState, ctx voidptr, symbol_cb fn (voidptr, &char, void
 	symtab = s.symtab
 	end_sym = symtab.data_offset / sizeof(Elf64_Sym)
 	for sym_index = 0; sym_index < end_sym; sym_index++ {
-		sym = &(&Elf64_Sym(symtab.data))[sym_index]
+		sym = unsafe { &(&Elf64_Sym(symtab.data))[sym_index] }
 		if sym.st_value {
 			name = unsafe { &char(symtab.link.data) + sym.st_name }
 			sym_bind = ((u8((sym.st_info))) >> 4)
@@ -567,7 +567,7 @@ fn version_add(s1 &TCCState) {
 		dllindex := 0
 		verndx := 0
 		vcc_trace_print('${@LOCATION}')
-		sym = &(&Elf64_Sym(symtab.data))[sym_index]
+		sym = unsafe { &(&Elf64_Sym(symtab.data))[sym_index] }
 		vcc_trace_print('${@LOCATION}')
 		if sym.st_shndx != 0 {
 			continue
@@ -683,7 +683,7 @@ fn set_elf_sym(s &Section, value Elf64_Addr, size u32, info int, other int, shnd
 			} // id: 0x7fffe8fdba20
 		}
 		vcc_trace('${@LOCATION}')
-		esym = &(&Elf64_Sym(s.data))[sym_index]
+		esym = unsafe { &(&Elf64_Sym(s.data))[sym_index] }
 		vcc_trace('${@LOCATION}')
 		if esym.st_value == value && esym.st_size == size && esym.st_info == info
 			&& esym.st_other == other && esym.st_shndx == shndx {
@@ -1223,7 +1223,7 @@ fn put_got_entry(s1 &TCCState, dyn_reloc_type int, sym_index int) &Sym_attr {
 	}
 	got_offset = s1.got.data_offset
 	section_ptr_add(s1.got, 8)
-	sym = &(&Elf64_Sym(s1.symtab_section.data))[sym_index]
+	sym = unsafe { &(&Elf64_Sym(s1.symtab_section.data))[sym_index] }
 	name = unsafe { &char(s1.symtab_section.link.data) + sym.st_name }
 	if s1.dynsym {
 		if ((u8((sym.st_info))) >> 4) == 0 {
@@ -1641,7 +1641,7 @@ fn resolve_common_syms(s1 &TCCState) {
 
 fn fill_got_entry(s1 &TCCState, rel &Elf64_Rela) {
 	sym_index := ((rel.r_info) >> 32)
-	sym := &(&Elf64_Sym(s1.symtab_section.data))[sym_index]
+	sym := unsafe { &(&Elf64_Sym(s1.symtab_section.data))[sym_index] }
 	attr := get_sym_attr(s1, sym_index, 0)
 	offset := attr.got_offset
 	if 0 == offset {
@@ -3121,7 +3121,7 @@ fn tcc_load_alacarte(s1 &TCCState, fd int, size int, entrysize int) int {
 				p += unsafe { C.strlen(p) + 1 }
 				continue
 			}
-			sym = &(&Elf64_Sym(s.data))[sym_index]
+			sym = unsafe { &(&Elf64_Sym(s.data))[sym_index] }
 			if sym.st_shndx != 0 {
 				p += unsafe { C.strlen(p) + 1 }
 				continue

@@ -10,8 +10,7 @@ module main
 fn C.sysconf(int) int
 fn C.fdopen(int, &char) int
 fn C.getenv(&char) &char
-@[c2v_variadic]
-fn C.open(&char, int, ...int) int
+fn C.open(&char, int, int) int
 
 pub struct C.timeval {
 	tv_sec  u64

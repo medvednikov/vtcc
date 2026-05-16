@@ -1014,7 +1014,7 @@ fn tcc_debug_fix_anon(s1 &TCCState, t &CType) {
 				}
 
 				sym.type_ = *t
-				s1.dState.debug_info = &debug_info(t)
+				s1.dState.debug_info = unsafe { &debug_info(t) }
 				debug_type = tcc_get_dwarf_info(s1, &sym)
 				s1.dState.debug_info = (unsafe { nil })
 				for j = 0; j < s1.dState.debug_anon_hash[i].n_debug_type; j++ {

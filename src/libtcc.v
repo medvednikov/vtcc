@@ -15,8 +15,7 @@ fn C.realpath(&char, &char) &char
 fn C.longjmp(&C.jmp_buf, int)
 
 fn C._setjmp(&C.jmp_buf) int
-@[c2v_variadic]
-fn C.open(&char, int, ...int) int
+fn C.open(&char, int, int) int
 fn C.dlopen(&char, int) voidptr
 fn C.dlsym(voidptr, &char) voidptr
 fn C.dlclose(voidptr) int
@@ -542,7 +541,7 @@ fn _tcc_open(s1 &TCCState, filename &char) int {
 		fd = 0
 		filename = c'<stdin>'
 	} else {
-		fd = C.open(filename, 0)
+		fd = C.open(filename, 0, 0)
 	}
 	if (s1.verbose == 2 && fd >= 0) || s1.verbose == 3 {
 		val := u32(&char(s1.include_stack_ptr) - &char(&s1.include_stack[0])) / sizeof(&BufferedFile)
@@ -1678,7 +1677,7 @@ fn args_parser_listfile(s &TCCState, filename &char, optind int, pargc &int, par
 	p := &char(0)
 	argc := 0
 	argv := &&char(unsafe { nil })
-	fd = C.open(filename, 0 | 0)
+	fd = C.open(filename, 0 | 0, 0)
 	if fd < 0 {
 		return _tcc_error_noabort(s1, unsafe { "listfile '${filename.vstring()}' not found" })
 	}
