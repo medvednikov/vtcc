@@ -1220,20 +1220,22 @@ struct C.sigaction {
 	sa_sigaction fn (int, &C.siginfo_t, voidptr)
 }
 
-const REG_RIP = 16
-const NGREG = 19
+$if linux {
+	const REG_RIP = 16
+	const NGREG = 19
 
-@[typedef]
-struct C.mcontext_t {
-	gregs [NGREG]C.gregset_t
-}
+	@[typedef]
+	struct C.mcontext_t {
+		gregs [NGREG]C.gregset_t
+	}
 
-@[typedef]
-struct C.ucontext_t {
-	uc_link     &C.ucontext_t
-	uc_sigmask  C.sigset_t
-	uc_stack    C.stack_t
-	uc_mcontext C.mcontext_t
+	@[typedef]
+	struct C.ucontext_t {
+		uc_link     &C.ucontext_t
+		uc_sigmask  C.sigset_t
+		uc_stack    C.stack_t
+		uc_mcontext C.mcontext_t
+	}
 }
 
 fn C.exit(int)
@@ -1252,10 +1254,15 @@ const FPE_FLTINV = (__SI_FAULT | 7) // floating point invalid operation
 const FPE_FLTSUB = (__SI_FAULT | 8) // subscript out of range
 const NSIGFPE = 8
 
-@[direct_array_access]
-fn rt_getcontext(uc &C.ucontext_t, rc &Rt_context) {
-	rc.ip = uc.uc_mcontext.gregs[REG_RIP]
-	rc.fp = uc.uc_mcontext.gregs[REG_RIP]
+$if linux {
+	@[direct_array_access]
+	fn rt_getcontext(uc &C.ucontext_t, rc &Rt_context) {
+		rc.ip = uc.uc_mcontext.gregs[REG_RIP]
+		rc.fp = uc.uc_mcontext.gregs[REG_RIP]
+	}
+} $else {
+	fn rt_getcontext(uc voidptr, rc &Rt_context) {
+	}
 }
 
 fn rt_exit(code int) {

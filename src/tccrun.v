@@ -1074,19 +1074,21 @@ struct C.sigaction {
 	sa_sigaction fn (int, &C.siginfo_t, voidptr)
 }
 
-const NGREG = 19
+$if linux {
+	const NGREG = 19
 
-@[typedef]
-struct C.mcontext_t {
-	gregs [NGREG]C.gregset_t
-}
+	@[typedef]
+	struct C.mcontext_t {
+		gregs [NGREG]C.gregset_t
+	}
 
-@[typedef]
-struct C.ucontext_t {
-	uc_link     &C.ucontext_t
-	uc_sigmask  C.sigset_t
-	uc_stack    C.stack_t
-	uc_mcontext C.mcontext_t
+	@[typedef]
+	struct C.ucontext_t {
+		uc_link     &C.ucontext_t
+		uc_sigmask  C.sigset_t
+		uc_stack    C.stack_t
+		uc_mcontext C.mcontext_t
+	}
 }
 
 type sigaction_struct = C.sigaction
@@ -1097,9 +1099,14 @@ fn C.sigemptyset(__set &C.sigset_t) int
 
 fn C.sigaction(int, &sigaction_struct, &sigaction_struct) int
 
-fn rt_getcontext(uc &C.ucontext_t, rc &Rt_context) {
-	rc.ip = uc.uc_mcontext.gregs[REG_RIP]
-	rc.fp = uc.uc_mcontext.gregs[REG_RIP]
+$if linux {
+	fn rt_getcontext(uc &C.ucontext_t, rc &Rt_context) {
+		rc.ip = uc.uc_mcontext.gregs[REG_RIP]
+		rc.fp = uc.uc_mcontext.gregs[REG_RIP]
+	}
+} $else {
+	fn rt_getcontext(uc voidptr, rc &Rt_context) {
+	}
 }
 
 fn sig_error(signum int, siginf &C.siginfo_t, puc voidptr) {
