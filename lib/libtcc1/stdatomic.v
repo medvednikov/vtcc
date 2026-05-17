@@ -61,13 +61,15 @@ fn atomic_store_1(atom voidptr, value u8, memorder int) {
 fn atomic_compare_exchange_1(atom voidptr, ref voidptr, xchg u8, weak bool, success_memorder int, failure_memorder int) bool {
 	mut rv := u8(0)
 	cmp := *&u8(ref)
-	asm amd64 {
-		lock cmpxchg '%1', '%2'
-		; =a (rv)
-		  +m (*&u8(atom))
-		; q (xchg)
-		  0 (cmp)
-		; memory
+	$if amd64 {
+		asm amd64 {
+			lock cmpxchg '%1', '%2'
+			; =a (rv)
+			  +m (*&u8(atom))
+			; q (xchg)
+			  0 (cmp)
+			; memory
+		}
 	}
 	unsafe {
 		*&u8(ref) = rv
@@ -289,13 +291,15 @@ fn atomic_store_2(atom voidptr, value u16, memorder int) {
 fn atomic_compare_exchange_2(atom voidptr, ref voidptr, xchg u16, weak bool, success_memorder int, failure_memorder int) bool {
 	mut rv := u16(0)
 	cmp := *&u16(ref)
-	asm amd64 {
-		lock cmpxchgw '%1', '%2'
-		; =a (rv)
-		  +m (*&u16(atom))
-		; q (xchg)
-		  0 (cmp)
-		; memory
+	$if amd64 {
+		asm amd64 {
+			lock cmpxchgw '%1', '%2'
+			; =a (rv)
+			  +m (*&u16(atom))
+			; q (xchg)
+			  0 (cmp)
+			; memory
+		}
 	}
 	unsafe {
 		*&u16(ref) = rv
@@ -517,13 +521,15 @@ fn atomic_store_4(atom voidptr, value u32, memorder int) {
 fn atomic_compare_exchange_4(atom voidptr, ref voidptr, xchg u32, weak bool, success_memorder int, failure_memorder int) bool {
 	mut rv := u32(0)
 	cmp := *&u32(ref)
-	asm amd64 {
-		lock cmpxchgl '%1', '%2'
-		; =a (rv)
-		  +m (*&u32(atom))
-		; q (xchg)
-		  0 (cmp)
-		; memory
+	$if amd64 {
+		asm amd64 {
+			lock cmpxchgl '%1', '%2'
+			; =a (rv)
+			  +m (*&u32(atom))
+			; q (xchg)
+			  0 (cmp)
+			; memory
+		}
 	}
 	unsafe {
 		*&u32(ref) = rv
