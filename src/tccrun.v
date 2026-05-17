@@ -83,6 +83,7 @@ __global g_rtctxt = Rt_context{}
 const DIR_TABLE_SIZE = 64
 const FILE_TABLE_SIZE = 512
 
+@[typedef]
 struct C.va_list {}
 
 fn C._setjmp(&C.jmp_buf) int

@@ -4742,9 +4742,10 @@ fn post_type(type_ &CType, ad &AttributeDef, storage int, td int) int {
 		}
 		skip(`)`)
 		if first != unsafe { nil } {
-			sym_pop(if local_stack { &local_stack } else { &global_stack }, first.prev,
+			first_val := first
+			sym_pop(if local_stack { &local_stack } else { &global_stack }, first_val.prev,
 				1)
-			for s = first; s; s = s.next {
+			for s = first_val; s; s = s.next {
 				s.v |= sym_field
 				vcc_trace_print('${@LOCATION}')
 			}

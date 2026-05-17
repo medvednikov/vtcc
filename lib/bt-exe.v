@@ -1213,14 +1213,14 @@ struct C.siginfo_t {
 	si_band   int
 }
 
-struct C.sigaction {
-	sa_handler   fn (int)
-	sa_mask      C.sigset_t
-	sa_flags     int
-	sa_sigaction fn (int, &C.siginfo_t, voidptr)
-}
-
 $if linux {
+	struct C.sigaction {
+		sa_handler   fn (int)
+		sa_mask      C.sigset_t
+		sa_flags     int
+		sa_sigaction fn (int, &C.siginfo_t, voidptr)
+	}
+
 	const REG_RIP = 16
 	const NGREG = 19
 
@@ -1241,18 +1241,21 @@ $if linux {
 fn C.exit(int)
 fn C.longjmp(&C.jmp_buf, int)
 fn C.signal(__sig int, __handler C.sighandler_t) C.sighandler_t
-fn C.sigemptyset(__set &C.sigset_t) int
-fn C.sigaction(int, &sigaction_struct, &sigaction_struct) int
 
-const FPE_INTDIV = (__SI_FAULT | 1) // integer divide by zero
-const FPE_INTOVF = (__SI_FAULT | 2) // integer overflow
-const FPE_FLTDIV = (__SI_FAULT | 3) // floating point divide by zero
-const FPE_FLTOVF = (__SI_FAULT | 4) // floating point overflow
-const FPE_FLTUND = (__SI_FAULT | 5) // floating point underflow
-const FPE_FLTRES = (__SI_FAULT | 6) // floating point inexact result
-const FPE_FLTINV = (__SI_FAULT | 7) // floating point invalid operation
-const FPE_FLTSUB = (__SI_FAULT | 8) // subscript out of range
-const NSIGFPE = 8
+$if linux {
+	fn C.sigemptyset(__set &C.sigset_t) int
+	fn C.sigaction(int, &sigaction_struct, &sigaction_struct) int
+
+	const FPE_INTDIV = (__SI_FAULT | 1)
+	const FPE_INTOVF = (__SI_FAULT | 2)
+	const FPE_FLTDIV = (__SI_FAULT | 3)
+	const FPE_FLTOVF = (__SI_FAULT | 4)
+	const FPE_FLTUND = (__SI_FAULT | 5)
+	const FPE_FLTRES = (__SI_FAULT | 6)
+	const FPE_FLTINV = (__SI_FAULT | 7)
+	const FPE_FLTSUB = (__SI_FAULT | 8)
+	const NSIGFPE = 8
+}
 
 $if linux {
 	@[direct_array_access]
@@ -1273,34 +1276,36 @@ fn rt_exit(code int) {
 	C.exit(code)
 }
 
-fn sig_error(signum int, siginf &C.siginfo_t, puc voidptr) {
-	rc := &g_rtctxt
-	rt_getcontext(puc, rc)
-	match signum {
-		8 { // case comp body kind=SwitchStmt is_enum=false
-			match siginf.si_code {
-				int(FPE_INTDIV), int(FPE_FLTDIV) {
-					rt_error(c'division by zero')
-				}
-				else {
-					rt_error(c'floating point exception')
+$if linux {
+	fn sig_error(signum int, siginf &C.siginfo_t, puc voidptr) {
+		rc := &g_rtctxt
+		rt_getcontext(puc, rc)
+		match signum {
+			8 {
+				match siginf.si_code {
+					int(FPE_INTDIV), int(FPE_FLTDIV) {
+						rt_error(c'division by zero')
+					}
+					else {
+						rt_error(c'floating point exception')
+					}
 				}
 			}
+			7, 11 {
+				rt_error(c'invalid memory access')
+			}
+			4 {
+				rt_error(c'illegal instruction')
+			}
+			6 {
+				rt_error(c'abort() called')
+			}
+			else {
+				rt_error(c'caught signal %d', signum)
+			}
 		}
-		7, 11 {
-			rt_error(c'invalid memory access')
-		}
-		4 { // case comp body kind=CallExpr is_enum=false
-			rt_error(c'illegal instruction')
-		}
-		6 { // case comp body kind=CallExpr is_enum=false
-			rt_error(c'abort() called')
-		}
-		else {
-			rt_error(c'caught signal %d', signum)
-		}
+		rt_exit(255)
 	}
-	rt_exit(255)
 }
 
 fn rt_error(const_fmt &char, ...) int {
@@ -1313,16 +1318,18 @@ fn rt_error(const_fmt &char, ...) int {
 }
 
 fn set_exception_handler() {
-	sigact := C.sigaction{}
-	C.sigemptyset(&sigact.sa_mask)
-	sigact.sa_flags = 4 | 2147483648
-	sigact.sa_sigaction = sig_error
-	C.sigemptyset(&sigact.sa_mask)
-	C.sigaction(8, &sigact, unsafe { nil })
-	C.sigaction(4, &sigact, unsafe { nil })
-	C.sigaction(11, &sigact, unsafe { nil })
-	C.sigaction(7, &sigact, unsafe { nil })
-	C.sigaction(6, &sigact, unsafe { nil })
+	$if linux {
+		sigact := C.sigaction{}
+		C.sigemptyset(&sigact.sa_mask)
+		sigact.sa_flags = 4 | 2147483648
+		sigact.sa_sigaction = sig_error
+		C.sigemptyset(&sigact.sa_mask)
+		C.sigaction(8, &sigact, unsafe { nil })
+		C.sigaction(4, &sigact, unsafe { nil })
+		C.sigaction(11, &sigact, unsafe { nil })
+		C.sigaction(7, &sigact, unsafe { nil })
+		C.sigaction(6, &sigact, unsafe { nil })
+	}
 }
 
 @[export: '__bt_init']

@@ -1,6 +1,9 @@
 @[translated]
 module main
 
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <setjmp.h>
 #include <semaphore.h>
 
