@@ -212,6 +212,7 @@ struct TinyAlloc {
 
 struct Tal_header_t {
 	size u32
+	_pad u32
 }
 
 fn tal_new(pal &&TinyAlloc, limit u32, size u32) &TinyAlloc {
@@ -268,7 +269,7 @@ fn tal_realloc_impl(pal &&TinyAlloc, p voidptr, size u32) voidptr {
 	header := &Tal_header_t(0)
 	ret := voidptr(unsafe { nil })
 	is_own := 0
-	adj_size := u32((size + 3) & -4)
+	adj_size := u32((size + 7) & -8)
 	al := &TinyAlloc(*pal)
 	// RRRREG tail_call id=0x7fffd886f110
 	tail_call:
@@ -1357,14 +1358,10 @@ type intpp = &int
 fn tok_get_macro(mut t &int, mut p intpp, mut cv CValue) {
 	_t := int(**p)
 	if (_t >= 192 && _t <= 207) {
-		// vcc_trace_print('${@LOCATION} 1 ${_t}')
-		tok_get(t, p, cv)
-		// vcc_trace('${@LOCATION}')
+		tok_get(t, unsafe { &&int(p) }, cv)
 	} else {
-		// vcc_trace_print('${@LOCATION} 2 ${_t}')
 		*t = _t
 		*p = unsafe { &int(*p) + 1 }
-		// vcc_trace('${@LOCATION}')
 	}
 }
 
