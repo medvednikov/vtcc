@@ -1075,6 +1075,7 @@ fn add64le(p &u8, x i64) {
 	write64le(p, read64le(p) + x)
 }
 
+#include <signal.h>
 #include <semaphore.h>
 #include <setjmp.h>
 
