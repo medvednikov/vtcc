@@ -8,7 +8,7 @@ module main
 #include <fcntl.h>
 
 fn C.sysconf(int) int
-fn C.fdopen(int, &char) int
+fn C.fdopen(int, &char) &C.FILE
 fn C.getenv(&char) &char
 fn C.open(&char, int, int) int
 

@@ -398,29 +398,17 @@ fn load(r int, sv &SValue) {
 					o(68 + (r & 7) * 8)
 					o(61476)
 				} else {
-					assert if (v >= treg_xmm0 && v <= treg_xmm7) {
-						true
-					} else {
-						false
-					}
+					assert v >= treg_xmm0 && v <= treg_xmm7
 					if (ft & 15) == 8 {
 						o(1052659)
 					} else {
-						assert if ((ft & 15) == 9) {
-							true
-						} else {
-							false
-						}
+						assert (ft & 15) == 9
 						o(1052658)
 					}
 					o(192 + (v & 7) + (r & 7) * 8)
 				}
 			} else if r == treg_st0 {
-				assert if (v >= treg_xmm0 && v <= treg_xmm7) {
-					true
-				} else {
-					false
-				}
+				assert v >= treg_xmm0 && v <= treg_xmm7
 				o(1118194)
 				o(68 + (r & 7) * 8)
 				o(61476)

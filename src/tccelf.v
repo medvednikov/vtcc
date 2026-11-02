@@ -5,7 +5,6 @@ fn C.read(int, voidptr, int) int
 fn C.fputc(int, &C.FILE) int
 fn C.strerror(int) &char
 fn C.dlsym(voidptr, &char) voidptr
-fn C.dlclose(int)
 fn C.unlink(&char)
 fn C.strtol(&char, &&char, int) u64
 fn C.fwrite(voidptr, usize, usize, &C.FILE) usize
@@ -1249,7 +1248,7 @@ fn put_got_entry(s1 &TCCState, dyn_reloc_type int, sym_index int) &Sym_attr {
 		}
 		unsafe {
 			C.memcpy(plt_name, name, len)
-			C.strcpy(plt_name + len, c'@plt')
+			C.strcpy(&plt_name[0] + len, c'@plt')
 		}
 		attr.plt_sym = put_elf_sym(s1.symtab, attr.plt_offset, 0, (((1) << 4) + ((2) & 15)),
 			0, s1.plt.sh_num, plt_name)
@@ -1511,7 +1510,7 @@ fn tcc_tcov_add_file(s1 &TCCState, filename &char) {
 		cstr_printf(&cstr, '${filename.vstring()}.tcov')
 	} else {
 		C.getcwd(wd, sizeof(wd))
-		cstr_printf(&cstr, '${(&char(&wd[0])).vstring()}/${filename.vstring()}.tcov')
+		cstr_printf(&cstr, '${unsafe { (&char(&wd[0])).vstring() }}/${filename.vstring()}.tcov')
 	}
 	ptr = section_ptr_add(s1.tcov_section, cstr.size + 1)
 	unsafe {

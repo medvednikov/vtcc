@@ -44,7 +44,7 @@ fn C.strtof(&char, &char) f64
 fn C.strtold(&char, &&char) f64
 fn C.strtod(&char, &&char) f64
 fn C.time(&C.time_t) C.time_t
-fn C.localtime(&C.time_t) C.tm
+fn C.localtime(&C.time_t) &C.tm
 
 //@[typedef]
 // struct C.time_t {}
@@ -411,7 +411,7 @@ fn cstr_u8cat(cstr &CString, ch int) {
 
 	e = unicode_to_utf8(buf, u32(ch))
 	unsafe {
-		cstr_cat(cstr, buf, e - buf)
+		cstr_cat(cstr, buf, e - &buf[0])
 	}
 }
 
@@ -1892,7 +1892,7 @@ fn pragma_parse(s1 &TCCState) {
 			if tok != `)` {
 				if tok == Tcc_token.tok_asm_push {
 					next()
-					if s1.pack_stack_ptr >= s1.pack_stack + 8 - 1 {
+					if s1.pack_stack_ptr >= &s1.pack_stack[0] + 8 - 1 {
 						goto stk_error // id: 0x7fffd88c4298
 					}
 					val = *s1.pack_stack_ptr++
@@ -2162,7 +2162,7 @@ fn preprocess(is_bof int) {
 			c = skip_spaces()
 			vcc_trace('${@LOCATION}')
 			for c != `\n` && c != ch_eof {
-				if (q - buf) < sizeof(buf) - 1 {
+				if unsafe { q - &buf[0] } < sizeof(buf) - 1 {
 					unsafe {
 						*q++ = c
 					}
@@ -3570,7 +3570,7 @@ fn paste_tokens(t1 int, v1 &CValue, t2 int, v2 &CValue) int {
 		if is_space(tok) {
 			continue
 		}
-		_tcc_warning('pasting "${file.buffer}" and "${file.buffer + n}" does not give a valid preprocessing token')
+		_tcc_warning('pasting "${file.buffer}" and "${unsafe { &file.buffer[0] + n }}" does not give a valid preprocessing token')
 		ret = 0
 		break
 	}
@@ -3778,7 +3778,7 @@ fn macro_subst_tok(tok_str &TokenString, nested_list &&Sym, s &Sym) int {
 		goto add_cstr // id: 0x7fffd88fced0
 	} else if tok == Tcc_token.tok___date__ || tok == Tcc_token.tok___time__ {
 		///vcc_trace('${@LOCATION}')
-		ti := u64(0)
+		ti := C.time_t(0)
 		tm := &C.tm(0)
 		C.time(&ti)
 		tm = C.localtime(&ti)
