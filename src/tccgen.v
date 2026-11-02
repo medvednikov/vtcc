@@ -338,7 +338,7 @@ fn test_lvalue() {
 fn check_vstack() {
 	unsafe {
 		if voidptr(vtop) != voidptr(&_vstack[0] + 1 - 1) {
-			_tcc_error('internal compiler error: vstack leak (${int((vtop - (_vstack + 1) + 1))})')
+			_tcc_error('internal compiler error: vstack leak (${int((vtop - (&_vstack[0] + 1) + 1))})')
 		}
 	}
 }
